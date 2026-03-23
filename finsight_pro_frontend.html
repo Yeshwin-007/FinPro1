@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FinSight Pro</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;color:#071f38;font-size:14px;background:#f4f6fa;height:100vh;overflow:hidden}
+.app{display:flex;height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:210px;min-width:210px;background:#fff;border-right:1px solid #dde3ee;display:flex;flex-direction:column;padding:0}
+.logo{padding:18px 20px;font-size:17px;font-weight:700;border-bottom:1px solid #dde3ee;letter-spacing:-0.3px}
+.logo span{color:#1a5ca0}
+.nav{padding:10px 0;flex:1}
+.nav-item{padding:9px 20px;cursor:pointer;font-size:13px;color:#4a6080;display:flex;align-items:center;gap:11px;transition:all .12s;border-left:3px solid transparent}
+.nav-item:hover{background:#f4f6fa;color:#071f38;border-left-color:#c9d9ed}
+.nav-item.active{background:#eef2f7;color:#1a5ca0;font-weight:600;border-left-color:#1a5ca0}
+.nav-icon{width:15px;height:15px;flex-shrink:0;opacity:.85}
+.sidebar-footer{padding:14px 20px;border-top:1px solid #dde3ee}
+.sidebar-footer .name{font-size:12px;font-weight:600;color:#071f38}
+.sidebar-footer .biz{font-size:11px;color:#8da0b8;margin-top:1px}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;padding:28px 32px}
+.page{display:none}.page.active{display:block}
+.page-title{font-size:20px;font-weight:700;margin-bottom:3px;letter-spacing:-0.3px}
+.page-sub{font-size:13px;color:#4a6080;margin-bottom:22px}
+
+/* METRICS */
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}
+.metric{background:#fff;border:1px solid #dde3ee;border-radius:10px;padding:16px 18px}
+.metric-label{font-size:11px;color:#8da0b8;margin-bottom:8px;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+.metric-value{font-size:20px;font-weight:700;letter-spacing:-0.5px}
+.metric-sub{font-size:11px;color:#8da0b8;margin-top:4px}
+.val-green{color:#0f7a5a}.val-red{color:#c0392b}.val-blue{color:#1a5ca0}.val-amber{color:#8a5a00}
+
+/* CARDS */
+.card{background:#fff;border:1px solid #dde3ee;border-radius:12px;padding:18px 20px;margin-bottom:14px}
+.card-title{font-size:11px;font-weight:600;color:#8da0b8;margin-bottom:14px;text-transform:uppercase;letter-spacing:.6px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;font-size:11px;padding:3px 9px;border-radius:20px;font-weight:600;letter-spacing:.1px}
+.bg{background:#e0f5ec;color:#0a5c42}
+.bb{background:#eef2f7;color:#1a5ca0}
+.ba{background:#fef3e2;color:#8a5a00}
+.br{background:#fce8e8;color:#a32d2d}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;font-size:11px;color:#8da0b8;padding:8px 12px;border-bottom:1px solid #eef2f7;text-transform:uppercase;letter-spacing:.5px}
+td{padding:10px 12px;border-bottom:1px solid #f4f6fa;color:#071f38;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafbfd}
+
+/* BAR CHART */
+.bar-wrap{display:flex;flex-direction:column;gap:10px}
+.bar-row{display:flex;align-items:center;gap:10px;font-size:12px}
+.bar-label{width:68px;color:#4a6080;text-align:right;flex-shrink:0;font-size:12px}
+.bar-track{flex:1;height:7px;background:#f0f2f7;border-radius:6px;overflow:hidden}
+.bar-fill{height:100%;border-radius:6px;transition:width .3s}
+.bar-val{width:60px;font-size:12px;color:#4a6080;text-align:right}
+
+/* MINI CHART (canvas-free bars) */
+.minichart{display:flex;align-items:flex-end;gap:5px;height:56px;padding-top:4px}
+.mcbar{flex:1;border-radius:3px 3px 0 0;min-height:4px;transition:height .3s}
+.mcbar.rev{background:#1a5ca0}
+.mcbar.exp{background:#e8edf5}
+.mclabels{display:flex;justify-content:space-between;font-size:10px;color:#8da0b8;margin-top:5px;padding:0 2px}
+
+/* HEALTH RING */
+.health-wrap{display:flex;align-items:center;gap:18px}
+.ring-wrap{position:relative;width:72px;height:72px;flex-shrink:0}
+.ring-wrap svg{width:72px;height:72px;transform:rotate(-90deg)}
+.ring-val{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#0f7a5a}
+.health-text .ht{font-size:14px;font-weight:600;color:#071f38;margin-bottom:4px}
+.health-text .hs{font-size:12px;color:#4a6080;line-height:1.5}
+
+/* UPLOAD ZONE */
+.upload-zone{border:1.5px dashed #c9d9ed;border-radius:12px;padding:40px 24px;text-align:center;cursor:pointer;color:#4a6080;transition:all .15s}
+.upload-zone:hover{border-color:#1a5ca0;color:#1a5ca0;background:#f5f8fd}
+.upload-zone svg{margin:0 auto 10px;display:block;opacity:.6}
+.upload-title{font-size:13px;font-weight:600;margin-bottom:5px}
+.upload-sub{font-size:12px;color:#8da0b8}
+
+/* CLAUSE CARDS */
+.clause{background:#f9fafc;border:1px solid #eef2f7;border-radius:8px;padding:13px 15px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.clause-type{font-size:12px;font-weight:600;color:#071f38;margin-bottom:4px}
+.clause-desc{font-size:12px;color:#4a6080;line-height:1.5}
+
+/* SIMULATION */
+.sim-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f0f2f7;font-size:13px}
+.sim-row:last-child{border-bottom:none}
+.sim-label{color:#4a6080}
+.sim-val{font-weight:600}
+
+/* DECISION BOX */
+.decision-box{border-radius:10px;padding:14px 16px;margin-bottom:12px;border:1px solid}
+.d-caution{background:#fef9ec;border-color:#f0c060}
+.d-proceed{background:#edfaf4;border-color:#5dbf90}
+.d-title{font-size:13px;font-weight:700;margin-bottom:6px}
+.d-text{font-size:12px;line-height:1.6}
+.alt-list{font-size:12px;color:#4a6080;line-height:1.9;margin-top:8px}
+
+/* FORM */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.form-row{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.form-label{font-size:11px;font-weight:600;color:#4a6080;text-transform:uppercase;letter-spacing:.4px}
+.form-input,.form-select{padding:8px 12px;font-size:13px;border:1px solid #dde3ee;border-radius:8px;background:#fff;color:#071f38;width:100%;font-family:inherit;transition:border .15s;outline:none}
+.form-input:focus,.form-select:focus{border-color:#1a5ca0;box-shadow:0 0 0 3px #eef2f7}
+.form-total{display:flex;justify-content:space-between;align-items:center;background:#f4f6fa;border-radius:8px;padding:10px 14px;margin-top:4px;font-size:13px}
+.form-total strong{font-size:15px;font-weight:700;color:#071f38}
+
+/* BUTTONS */
+.btn{padding:8px 16px;font-size:13px;font-weight:600;border-radius:8px;cursor:pointer;transition:all .12s;border:1px solid;font-family:inherit;letter-spacing:.1px}
+.btn-primary{background:#0e3d6e;color:#fff;border-color:#0e3d6e}
+.btn-primary:hover{background:#071f38}
+.btn-ghost{background:#fff;color:#4a6080;border-color:#dde3ee}
+.btn-ghost:hover{background:#f4f6fa}
+.btn-full{width:100%;text-align:center;padding:10px}
+
+/* ACTIVITY */
+.activity-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f4f6fa;font-size:13px;gap:12px}
+.activity-row:last-child{border-bottom:none}
+.activity-text{color:#071f38}
+
+/* CASH FLOW FORECAST */
+.forecast-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f4f6fa;font-size:13px}
+.forecast-row:last-child{border-bottom:none}
+.forecast-note{margin-top:12px;background:#f4f6fa;border-radius:8px;padding:10px 14px;font-size:12px;color:#4a6080;line-height:1.5}
+
+/* SETTINGS TOGGLES */
+.toggle-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f4f6fa;font-size:13px;color:#071f38}
+.toggle-row:last-child{border-bottom:none}
+.toggle{width:36px;height:20px;border-radius:20px;border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
+.toggle.on{background:#1a5ca0}
+.toggle.off{background:#dde3ee}
+.toggle::after{content:'';position:absolute;top:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s}
+.toggle.on::after{left:19px}
+.toggle.off::after{left:3px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="logo">Fin<span>Sight</span> Pro</div>
+  <nav class="nav">
+    <div class="nav-item active" onclick="nav('dashboard',this)">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor">
+        <rect x="1" y="1" width="6" height="6" rx="1.5"/>
+        <rect x="9" y="1" width="6" height="6" rx="1.5"/>
+        <rect x="1" y="9" width="6" height="6" rx="1.5"/>
+        <rect x="9" y="9" width="6" height="6" rx="1.5"/>
+      </svg>
+      Dashboard
+    </div>
+    <div class="nav-item" onclick="nav('billing',this)">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <rect x="2" y="2" width="12" height="12" rx="1.5"/>
+        <path d="M5 5h6M5 8h6M5 11h4"/>
+      </svg>
+      Billing
+    </div>
+    <div class="nav-item" onclick="nav('contracts',this)">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <path d="M3 2h7l3 3v9a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1z"/>
+        <path d="M10 2v4h4M5 8h6M5 10.5h6M5 13h4"/>
+      </svg>
+      Contracts
+    </div>
+    <div class="nav-item" onclick="nav('analytics',this)">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1 12l4-5 3 3 3-4 4 5"/>
+      </svg>
+      Analytics
+    </div>
+    <div class="nav-item" onclick="nav('settings',this)">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <circle cx="8" cy="8" r="2.5"/>
+        <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41"/>
+      </svg>
+      Settings
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="name">Aravind G.</div>
+    <div class="biz">Aravind Enterprises</div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+  <!-- DASHBOARD -->
+  <div id="dashboard" class="page active">
+    <div class="page-title">Dashboard</div>
+    <div class="page-sub">Welcome back, Aravind — here is your business overview.</div>
+
+    <div class="metrics">
+      <div class="metric">
+        <div class="metric-label">Monthly revenue</div>
+        <div class="metric-value val-green">₹3,40,000</div>
+        <div class="metric-sub">+12% vs last month</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Monthly expenses</div>
+        <div class="metric-value val-red">₹1,90,000</div>
+        <div class="metric-sub">−3% vs last month</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Net profit</div>
+        <div class="metric-value val-blue">₹1,50,000</div>
+        <div class="metric-sub">Margin: 44%</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Outstanding invoices</div>
+        <div class="metric-value val-amber">₹82,500</div>
+        <div class="metric-sub">3 invoices pending</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">Health score</div>
+        <div class="health-wrap">
+          <div class="ring-wrap">
+            <svg viewBox="0 0 72 72">
+              <circle cx="36" cy="36" r="28" fill="none" stroke="#f0f2f7" stroke-width="8"/>
+              <circle cx="36" cy="36" r="28" fill="none" stroke="#0f7a5a" stroke-width="8"
+                stroke-dasharray="124 52" stroke-dashoffset="0" stroke-linecap="round"/>
+            </svg>
+            <div class="ring-val">74</div>
+          </div>
+          <div class="health-text">
+            <div class="ht">Good standing</div>
+            <div class="hs">Revenue covers expenses comfortably. Low debt risk.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Revenue — last 6 months</div>
+        <div class="minichart" id="dash-chart"></div>
+        <div class="mclabels"><span>Oct</span><span>Nov</span><span>Dec</span><span>Jan</span><span>Feb</span><span>Mar</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Recent activity</div>
+      <div class="activity-row">
+        <span class="activity-text">Invoice INV-202503-4821 paid — Zenith Tech</span>
+        <span class="badge bg">Paid</span>
+      </div>
+      <div class="activity-row">
+        <span class="activity-text">New expense recorded — Office supplies ₹4,200</span>
+        <span class="badge ba">Expense</span>
+      </div>
+      <div class="activity-row">
+        <span class="activity-text">Contract analysis complete — HDFC Loan Agreement</span>
+        <span class="badge bb">AI Report</span>
+      </div>
+      <div class="activity-row">
+        <span class="activity-text">Invoice INV-202503-4819 overdue — Skyline Corp</span>
+        <span class="badge br">Overdue</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- BILLING -->
+  <div id="billing" class="page">
+    <div class="page-title">Billing</div>
+    <div class="page-sub">Manage invoices, clients, and expenses.</div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">Create invoice</div>
+        <div class="form-grid">
+          <div class="form-row">
+            <div class="form-label">Client</div>
+            <select class="form-select">
+              <option>Zenith Tech</option>
+              <option>Skyline Corp</option>
+              <option>Nova Solutions</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-label">Due date</div>
+            <input type="date" class="form-input" value="2025-04-15"/>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-label">Item description</div>
+          <input type="text" class="form-input" value="Website development — Phase 2"/>
+        </div>
+        <div class="form-grid">
+          <div class="form-row">
+            <div class="form-label">Amount (₹)</div>
+            <input type="number" class="form-input" value="45000" id="inv-amount" oninput="calcInv()"/>
+          </div>
+          <div class="form-row">
+            <div class="form-label">GST rate (%)</div>
+            <select class="form-select" id="inv-gst" onchange="calcInv()">
+              <option value="18">18%</option>
+              <option value="12">12%</option>
+              <option value="5">5%</option>
+              <option value="0">0%</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-total">
+          <span style="font-size:12px;color:#4a6080">Total incl. GST</span>
+          <strong id="inv-total">₹53,100</strong>
+        </div>
+        <div style="text-align:right;margin-top:12px">
+          <button class="btn btn-primary">Generate invoice</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Expense breakdown</div>
+        <div class="bar-wrap">
+          <div class="bar-row">
+            <span class="bar-label">Salaries</span>
+            <div class="bar-track"><div class="bar-fill" style="width:72%;background:#1a5ca0"></div></div>
+            <span class="bar-val">₹1,36,800</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">Rent</span>
+            <div class="bar-track"><div class="bar-fill" style="width:26%;background:#1d9e75"></div></div>
+            <span class="bar-val">₹25,000</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">Software</span>
+            <div class="bar-track"><div class="bar-fill" style="width:10%;background:#ef9f27"></div></div>
+            <span class="bar-val">₹9,500</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">Travel</span>
+            <div class="bar-track"><div class="bar-fill" style="width:8%;background:#d4537e"></div></div>
+            <span class="bar-val">₹7,200</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">Office</span>
+            <div class="bar-track"><div class="bar-fill" style="width:6%;background:#888780"></div></div>
+            <span class="bar-val">₹11,500</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Recent invoices</div>
+      <table>
+        <thead>
+          <tr><th>Invoice #</th><th>Client</th><th>Amount</th><th>Due date</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>INV-202503-4821</td><td>Zenith Tech</td><td>₹53,100</td><td>Mar 15, 2025</td><td><span class="badge bg">Paid</span></td></tr>
+          <tr><td>INV-202503-4820</td><td>Nova Solutions</td><td>₹29,500</td><td>Mar 28, 2025</td><td><span class="badge bb">Sent</span></td></tr>
+          <tr><td>INV-202503-4819</td><td>Skyline Corp</td><td>₹82,500</td><td>Mar 10, 2025</td><td><span class="badge br">Overdue</span></td></tr>
+          <tr><td>INV-202502-4815</td><td>Zenith Tech</td><td>₹18,000</td><td>Feb 20, 2025</td><td><span class="badge bg">Paid</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CONTRACTS -->
+  <div id="contracts" class="page">
+    <div class="page-title">Contract analysis</div>
+    <div class="page-sub">Upload a loan or contract document to get an AI-powered risk report.</div>
+
+    <div class="upload-zone" onclick="showAnalysis()">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <path d="M12 15V3m0 0l-4 4m4-4l4 4M4 17v1a3 3 0 003 3h10a3 3 0 003-3v-1"/>
+      </svg>
+      <div class="upload-title">Drop a PDF or DOCX here, or click to upload</div>
+      <div class="upload-sub">Loan agreements, credit contracts, vendor agreements supported</div>
+    </div>
+
+    <div id="analysis-result" style="display:none;margin-top:16px">
+      <div class="card">
+        <div class="card-title">Extracted clauses — HDFC Business Loan Agreement</div>
+        <div class="clause">
+          <div>
+            <div class="clause-type">Interest rate</div>
+            <div class="clause-desc">Annual interest of 14.5% applied on reducing balance. Reviewed quarterly.</div>
+          </div>
+          <span class="badge ba">Medium risk</span>
+        </div>
+        <div class="clause">
+          <div>
+            <div class="clause-type">Late payment penalty</div>
+            <div class="clause-desc">4% per month charged on any overdue instalment. Compounded monthly.</div>
+          </div>
+          <span class="badge br">High risk</span>
+        </div>
+        <div class="clause">
+          <div>
+            <div class="clause-type">Prepayment clause</div>
+            <div class="clause-desc">2% prepayment charge if loan is closed before 12 months.</div>
+          </div>
+          <span class="badge ba">Medium risk</span>
+        </div>
+        <div class="clause">
+          <div>
+            <div class="clause-type">Collateral requirement</div>
+            <div class="clause-desc">Business assets valued at 1.5x loan amount to be pledged as security.</div>
+          </div>
+          <span class="badge bb">Low risk</span>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-title">Consequence simulation — ₹5,00,000 @ 14.5% / 36 months</div>
+          <div class="sim-row"><span class="sim-label">Monthly EMI</span><strong class="sim-val">₹17,230</strong></div>
+          <div class="sim-row"><span class="sim-label">Total repayment</span><strong class="sim-val">₹6,20,280</strong></div>
+          <div class="sim-row"><span class="sim-label">Total interest paid</span><strong class="sim-val val-red">₹1,20,280</strong></div>
+          <div class="sim-row"><span class="sim-label">Cost of 3 missed payments</span><strong class="sim-val val-red">₹60,000</strong></div>
+          <div class="sim-row"><span class="sim-label">Credit score impact</span><strong class="sim-val val-red">−40 pts</strong></div>
+          <div class="sim-row"><span class="sim-label">Market avg rate</span><strong class="sim-val val-green">11–13%</strong></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">AI decision</div>
+          <div class="decision-box d-caution">
+            <div class="d-title" style="color:#8a5a00">⚠ Caution — proceed carefully</div>
+            <div class="d-text" style="color:#8a5a00">Your EMI of ₹17,230 represents 43% of your monthly income. Safe limit is 35%. Cash flow can cover this but leaves very little buffer for emergencies.</div>
+          </div>
+          <div style="font-size:11px;font-weight:600;color:#8da0b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Suggested alternatives</div>
+          <div class="alt-list">
+            › Reduce loan to ₹3,50,000 → EMI drops to ₹12,061 (30%)<br>
+            › Extend tenure to 48 months → EMI drops to ₹14,080<br>
+            › Negotiate rate to 12.5% → saves ₹18,000 over life
+          </div>
+          <button class="btn btn-primary btn-full" style="margin-top:14px">Download negotiation email</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ANALYTICS -->
+  <div id="analytics" class="page">
+    <div class="page-title">Analytics</div>
+    <div class="page-sub">Profit, loss, and cash flow trends for your business.</div>
+
+    <div class="metrics">
+      <div class="metric">
+        <div class="metric-label">Total revenue (YTD)</div>
+        <div class="metric-value val-green">₹18,40,000</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Total expenses (YTD)</div>
+        <div class="metric-value val-red">₹10,20,000</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Net profit (YTD)</div>
+        <div class="metric-value val-blue">₹8,20,000</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Avg monthly margin</div>
+        <div class="metric-value">44.6%</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">Revenue vs expenses — last 6 months</div>
+        <div class="minichart" id="analytics-chart"></div>
+        <div class="mclabels"><span>Oct</span><span>Nov</span><span>Dec</span><span>Jan</span><span>Feb</span><span>Mar</span></div>
+        <div style="display:flex;gap:16px;margin-top:10px;font-size:11px;color:#4a6080">
+          <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;background:#1a5ca0;border-radius:2px;display:inline-block"></span>Revenue</span>
+          <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;background:#e8edf5;border:1px solid #c9d9ed;border-radius:2px;display:inline-block"></span>Expenses</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Cash flow forecast — next 3 months</div>
+        <div class="forecast-row"><span>April 2025 (projected)</span><strong class="val-green">+₹1,62,000</strong></div>
+        <div class="forecast-row"><span>May 2025 (projected)</span><strong class="val-green">+₹1,55,000</strong></div>
+        <div class="forecast-row"><span>June 2025 (projected)</span><strong class="val-amber">+₹98,000</strong></div>
+        <div class="forecast-note">June shows a dip due to recurring annual software renewals. Consider delaying discretionary purchases in Q2.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Top clients by revenue</div>
+      <table>
+        <thead><tr><th>Client</th><th>Revenue (YTD)</th><th>Invoices</th><th>Avg payment time</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Zenith Tech</td><td>₹7,20,000</td><td>12</td><td>8 days</td><td><span class="badge bg">Reliable</span></td></tr>
+          <tr><td>Nova Solutions</td><td>₹4,80,000</td><td>8</td><td>14 days</td><td><span class="badge bb">Good</span></td></tr>
+          <tr><td>Skyline Corp</td><td>₹3,60,000</td><td>6</td><td>32 days</td><td><span class="badge br">Slow payer</span></td></tr>
+          <tr><td>Apex Retail</td><td>₹2,80,000</td><td>5</td><td>11 days</td><td><span class="badge bb">Good</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div id="settings" class="page">
+    <div class="page-title">Settings</div>
+    <div class="page-sub">Manage your business profile and preferences.</div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">Business profile</div>
+        <div class="form-row"><div class="form-label">Business name</div><input class="form-input" value="Aravind Enterprises"/></div>
+        <div class="form-row"><div class="form-label">Owner name</div><input class="form-input" value="Aravind G"/></div>
+        <div class="form-row"><div class="form-label">GST number</div><input class="form-input" value="33AAAAB0000B1ZV"/></div>
+        <div class="form-grid">
+          <div class="form-row"><div class="form-label">Monthly income (₹)</div><input class="form-input" type="number" value="340000"/></div>
+          <div class="form-row"><div class="form-label">Existing EMI (₹)</div><input class="form-input" type="number" value="12000"/></div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:4px">
+          <button class="btn btn-primary">Save profile</button>
+          <button class="btn btn-ghost">Cancel</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Notification preferences</div>
+        <div class="toggle-row"><span>Invoice overdue alerts</span><button class="toggle on" onclick="tog(this)"></button></div>
+        <div class="toggle-row"><span>Cash flow warnings</span><button class="toggle on" onclick="tog(this)"></button></div>
+        <div class="toggle-row"><span>Contract analysis complete</span><button class="toggle on" onclick="tog(this)"></button></div>
+        <div class="toggle-row"><span>Monthly summary report</span><button class="toggle off" onclick="tog(this)"></button></div>
+        <div class="toggle-row"><span>Market rate updates</span><button class="toggle on" onclick="tog(this)"></button></div>
+        <div class="card-title" style="margin-top:18px">Default GST rate</div>
+        <select class="form-select">
+          <option>18% (standard)</option>
+          <option>12%</option>
+          <option>5%</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+function nav(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+}
+
+function showAnalysis() {
+  document.getElementById('analysis-result').style.display = 'block';
+}
+
+function calcInv() {
+  const amt = parseFloat(document.getElementById('inv-amount').value) || 0;
+  const gst = parseFloat(document.getElementById('inv-gst').value) || 0;
+  const total = amt + (amt * gst / 100);
+  document.getElementById('inv-total').textContent = '₹' + Math.round(total).toLocaleString('en-IN');
+}
+
+function tog(el) {
+  el.classList.toggle('on');
+  el.classList.toggle('off');
+}
+
+function buildChart(id, revData, expData) {
+  const container = document.getElementById(id);
+  if (!container) return;
+  container.innerHTML = '';
+  const maxVal = Math.max(...revData, ...(expData || []));
+  revData.forEach((v, i) => {
+    const col = document.createElement('div');
+    col.style.cssText = 'flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:3px;height:100%';
+    const revBar = document.createElement('div');
+    revBar.className = 'mcbar rev';
+    revBar.style.height = Math.round(v / maxVal * 100) + '%';
+    col.appendChild(revBar);
+    if (expData) {
+      const expBar = document.createElement('div');
+      expBar.className = 'mcbar exp';
+      expBar.style.height = Math.round(expData[i] / maxVal * 100) + '%';
+      col.appendChild(expBar);
+    }
+    container.appendChild(col);
+  });
+}
+
+buildChart('dash-chart',     [210,265,290,310,285,340]);
+buildChart('analytics-chart',[210,265,290,310,285,340],[160,185,200,190,175,190]);
+</script>
+</body>
+</html>
